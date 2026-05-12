@@ -1,0 +1,669 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// ─────────────────────────────────────────────
+// Auth layout
+// ─────────────────────────────────────────────
+
+.auth-page {
+  min-height: 100vh;
+  @include flex-center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+}
+
+.auth-card {
+  @include card;
+  @include slide-up;
+  width: 100%;
+  max-width: 28rem;
+  padding: $spacing-2xl $spacing-xl;
+  box-shadow: $shadow-2xl;
+
+  &__logo {
+    @include flex-col;
+    align-items: center;
+    margin-bottom: $spacing-xl;
+    gap: $spacing-md;
+  }
+
+  &__icon {
+    width: 4rem;
+    height: 4rem;
+    background-color: hsl(var(--primary));
+    border-radius: $radius-2xl;
+    @include flex-center;
+    font-size: 1.75rem;
+  }
+
+  &__title {
+    font-size: $text-2xl;
+    font-weight: $font-bold;
+    text-align: center;
+    color: hsl(var(--foreground));
+  }
+
+  &__subtitle {
+    font-size: $text-sm;
+    color: hsl(var(--muted-foreground));
+    text-align: center;
+    margin-top: $spacing-xs;
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__label {
+    font-size: $text-sm;
+    font-weight: $font-medium;
+    color: hsl(var(--foreground));
+  }
+
+  &__label-row {
+    @include flex-between;
+  }
+
+  &__error {
+    font-size: $text-xs;
+    color: hsl(var(--destructive));
+  }
+
+  &__link {
+    font-size: $text-xs;
+    color: hsl(var(--primary));
+
+    &:hover { text-decoration: underline; }
+  }
+
+  &__submit {
+    @include btn-primary;
+    width: 100%;
+    padding: $spacing-sm $spacing-md;
+    margin-top: $spacing-xs;
+  }
+
+  &__footer {
+    text-align: center;
+    font-size: $text-sm;
+    color: hsl(var(--muted-foreground));
+    margin-top: $spacing-lg;
+
+    a {
+      color: hsl(var(--primary));
+      font-weight: $font-medium;
+      &:hover { text-decoration: underline; }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// App sidebar layout
+// ─────────────────────────────────────────────
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: hsl(var(--background));
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: hsl(var(--card));
+  border-right: 1px solid hsl(var(--border));
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  &__header {
+    padding: $spacing-lg $spacing-xl;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    font-weight: $font-bold;
+    color: hsl(var(--foreground));
+    font-size: $text-base;
+  }
+
+  &__nav {
+    flex: 1;
+    padding: $spacing-md $spacing-sm;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__nav-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-lg;
+    font-size: $text-sm;
+    font-weight: $font-medium;
+    color: hsl(var(--muted-foreground));
+    transition: background-color $transition-fast, color $transition-fast;
+    text-decoration: none;
+
+    &:hover {
+      background-color: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
+    }
+
+    &--active {
+      background-color: hsl(var(--primary) / 0.1);
+      color: hsl(var(--primary));
+    }
+
+    &__icon { font-size: $text-base; }
+  }
+
+  &__divider {
+    border: none;
+    border-top: 1px solid hsl(var(--border));
+    margin: $spacing-sm 0;
+  }
+
+  &__section-label {
+    padding: 0 $spacing-md;
+    font-size: $text-xs;
+    font-weight: $font-medium;
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: $spacing-xs;
+  }
+
+  &__footer {
+    padding: $spacing-md $spacing-sm;
+    border-top: 1px solid hsl(var(--border));
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md;
+    margin-bottom: $spacing-xs;
+  }
+
+  &__avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: $radius-full;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    @include flex-center;
+    font-size: $text-sm;
+    font-weight: $font-bold;
+    flex-shrink: 0;
+  }
+
+  &__user-info {
+    min-width: 0;
+
+    &-name {
+      font-size: $text-sm;
+      font-weight: $font-medium;
+      color: hsl(var(--foreground));
+      @include text-truncate;
+    }
+
+    &-role {
+      font-size: $text-xs;
+      color: hsl(var(--muted-foreground));
+    }
+  }
+
+  &__logout {
+    @include btn-ghost;
+    width: 100%;
+    justify-content: flex-start;
+    font-size: $text-sm;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-lg;
+    color: hsl(var(--muted-foreground));
+
+    &:hover:not(:disabled) {
+      background-color: hsl(var(--destructive) / 0.1);
+      color: hsl(var(--destructive));
+    }
+  }
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  @include scrollbar-thin;
+
+  &__inner {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: $spacing-xl $spacing-xl;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Page header
+// ─────────────────────────────────────────────
+
+.page-header {
+  margin-bottom: $spacing-xl;
+
+  &__title {
+    font-size: $text-2xl;
+    font-weight: $font-bold;
+    color: hsl(var(--foreground));
+  }
+
+  &__subtitle {
+    color: hsl(var(--muted-foreground));
+    margin-top: $spacing-xs;
+    font-size: $text-sm;
+  }
+
+  &__actions {
+    @include flex-between;
+    align-items: flex-end;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Card
+// ─────────────────────────────────────────────
+
+.card {
+  @include card;
+
+  &--hover { @include card-hover; }
+
+  &__header {
+    @include flex-between;
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  &__title {
+    font-size: $text-base;
+    font-weight: $font-semibold;
+    color: hsl(var(--foreground));
+  }
+}
+
+// ─────────────────────────────────────────────
+// KPI / Stat card
+// ─────────────────────────────────────────────
+
+.stat-card {
+  @include card;
+
+  &__header {
+    @include flex-between;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__label {
+    font-size: $text-sm;
+    font-weight: $font-medium;
+    color: hsl(var(--muted-foreground));
+  }
+
+  &__icon { font-size: $text-xl; }
+
+  &__value {
+    font-size: $text-3xl;
+    font-weight: $font-bold;
+    color: hsl(var(--foreground));
+    line-height: 1.2;
+  }
+
+  &__sub {
+    font-size: $text-xs;
+    color: hsl(var(--muted-foreground));
+    margin-top: $spacing-xs;
+  }
+
+  &--primary {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+
+    .stat-card__label,
+    .stat-card__sub { color: hsl(var(--primary-foreground) / 0.7); }
+
+    .stat-card__value { color: hsl(var(--primary-foreground)); }
+  }
+}
+
+// ─────────────────────────────────────────────
+// Button
+// ─────────────────────────────────────────────
+
+.btn {
+  &--primary { @include btn-primary; }
+  &--outline  { @include btn-outline; }
+  &--ghost    { @include btn-ghost; }
+
+  &--sm {
+    padding: $spacing-xs $spacing-sm;
+    font-size: $text-xs;
+  }
+
+  &--lg {
+    padding: $spacing-md $spacing-xl;
+    font-size: $text-base;
+  }
+
+  &--full { width: 100%; }
+}
+
+// ─────────────────────────────────────────────
+// Badge
+// ─────────────────────────────────────────────
+
+.badge {
+  @include badge(hsl(var(--muted)), hsl(var(--muted-foreground)));
+
+  &--active   { @include badge(rgba(34, 197, 94, 0.15), rgb(22, 163, 74)); }
+  &--suspended { @include badge(rgba(234, 179, 8, 0.15), rgb(202, 138, 4)); }
+  &--banned   { @include badge(hsl(var(--destructive) / 0.15), hsl(var(--destructive))); }
+  &--admin    { @include badge(rgba(168, 85, 247, 0.15), rgb(147, 51, 234)); }
+  &--user     { @include badge(rgba(59, 130, 246, 0.15), rgb(37, 99, 235)); }
+  &--primary  { @include badge(hsl(var(--primary) / 0.15), hsl(var(--primary))); }
+}
+
+// ─────────────────────────────────────────────
+// Data table
+// ─────────────────────────────────────────────
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $text-sm;
+
+  &__head {
+    background-color: hsl(var(--muted) / 0.5);
+
+    th {
+      padding: $spacing-sm $spacing-md;
+      text-align: left;
+      font-size: $text-xs;
+      font-weight: $font-medium;
+      color: hsl(var(--muted-foreground));
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+  }
+
+  &__body {
+    tr {
+      border-bottom: 1px solid hsl(var(--border));
+      transition: background-color $transition-fast;
+
+      &:last-child { border-bottom: none; }
+      &:hover { background-color: hsl(var(--muted) / 0.3); }
+    }
+
+    td {
+      padding: $spacing-sm $spacing-md;
+      color: hsl(var(--foreground));
+      vertical-align: middle;
+    }
+  }
+
+  &__pagination {
+    @include flex-between;
+    padding: $spacing-md $spacing-lg;
+    border-top: 1px solid hsl(var(--border));
+    font-size: $text-sm;
+    color: hsl(var(--muted-foreground));
+  }
+
+  &__pagination-controls {
+    display: flex;
+    gap: $spacing-sm;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Check-in specific
+// ─────────────────────────────────────────────
+
+.checkin-card {
+  @include card;
+  text-align: center;
+  padding: $spacing-2xl $spacing-xl;
+
+  &__icon {
+    font-size: 4rem;
+    margin-bottom: $spacing-md;
+    display: block;
+  }
+
+  &__title {
+    font-size: $text-xl;
+    font-weight: $font-bold;
+    color: hsl(var(--foreground));
+  }
+
+  &__stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-xl;
+    margin: $spacing-xl 0;
+  }
+
+  &__stat {
+    text-align: center;
+
+    &-value {
+      font-size: $text-3xl;
+      font-weight: $font-bold;
+      color: hsl(var(--primary));
+      display: block;
+    }
+
+    &-label {
+      font-size: $text-sm;
+      color: hsl(var(--muted-foreground));
+    }
+  }
+
+  &__divider {
+    width: 1px;
+    height: 3rem;
+    background-color: hsl(var(--border));
+  }
+}
+
+.streak-progress {
+  margin-bottom: $spacing-xl;
+
+  &__labels {
+    @include flex-between;
+    font-size: $text-xs;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: $spacing-xs;
+  }
+
+  &__bar {
+    height: 0.5rem;
+    background-color: hsl(var(--muted));
+    border-radius: $radius-full;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, hsl(var(--primary)), #60a5fa);
+    border-radius: $radius-full;
+    transition: width $transition-slow;
+  }
+}
+
+.checkin-result {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: $radius-2xl;
+  padding: $spacing-xl;
+  text-align: center;
+  @include slide-up;
+
+  &__icon { font-size: 3rem; margin-bottom: $spacing-sm; display: block; }
+
+  &__title {
+    font-size: $text-xl;
+    font-weight: $font-bold;
+    color: hsl(var(--foreground));
+  }
+
+  &__amounts {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-2xl;
+    margin-top: $spacing-lg;
+  }
+
+  &__amount {
+    &-value {
+      font-size: $text-2xl;
+      font-weight: $font-bold;
+      display: block;
+
+      &--earned { color: rgb(34, 197, 94); }
+      &--balance { color: hsl(var(--foreground)); }
+    }
+
+    &-label {
+      font-size: $text-xs;
+      color: hsl(var(--muted-foreground));
+    }
+  }
+}
+
+.reward-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-sm;
+
+  @include md { grid-template-columns: repeat(4, 1fr); }
+  @include lg { grid-template-columns: repeat(6, 1fr); }
+}
+
+.reward-cell {
+  border: 1px solid hsl(var(--border));
+  border-radius: $radius-xl;
+  padding: $spacing-sm;
+  text-align: center;
+  background-color: hsl(var(--muted) / 0.5);
+  transition: border-color $transition-fast, background-color $transition-fast;
+
+  &--active {
+    background-color: hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary));
+  }
+
+  &__day {
+    font-size: $text-xs;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 2px;
+  }
+
+  &__amount {
+    font-size: $text-sm;
+    font-weight: $font-bold;
+    color: hsl(var(--foreground));
+  }
+
+  &__multiplier {
+    font-size: $text-xs;
+    color: rgb(249, 115, 22);
+  }
+
+  &__label {
+    font-size: $text-xs;
+    color: hsl(var(--muted-foreground));
+    @include text-truncate;
+    margin-top: 2px;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Modal
+// ─────────────────────────────────────────────
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: $z-modal;
+  @include flex-center;
+  background-color: rgba(0, 0, 0, 0.5);
+  @include fade-in(150ms);
+}
+
+.modal {
+  @include card;
+  @include slide-up;
+  width: 100%;
+  max-width: 28rem;
+  box-shadow: $shadow-2xl;
+
+  &__title {
+    font-size: $text-xl;
+    font-weight: $font-bold;
+    color: hsl(var(--foreground));
+    margin-bottom: $spacing-lg;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+    padding-top: $spacing-sm;
+
+    button { flex: 1; }
+  }
+}
+
+// ─────────────────────────────────────────────
+// Skeleton loaders
+// ─────────────────────────────────────────────
+
+.skeleton-text {
+  @include skeleton;
+  height: 1rem;
+  width: 100%;
+
+  &--sm { height: 0.75rem; width: 60%; }
+  &--lg { height: 1.5rem; }
+  &--title { height: 1.75rem; width: 40%; }
+}
+
+.skeleton-card {
+  @include card;
+
+  &__header {
+    @include skeleton;
+    height: 1.25rem;
+    width: 50%;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__value {
+    @include skeleton;
+    height: 2.5rem;
+    width: 70%;
+  }
+}

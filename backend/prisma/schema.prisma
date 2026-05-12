@@ -1,0 +1,367 @@
+// Reward Platform — PostgreSQL Schema
+// Prisma ORM v5
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum TransactionType {
+  CHECKIN_BONUS
+  ADMIN_BONUS
+  SYSTEM_REWARD
+  PENALTY
+  REFERRAL_BONUS
+  MILESTONE_BONUS
+  LUCKY_DRAW
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum BonusType {
+  DAILY
+  MILESTONE
+  EVENT
+  ADMIN_GRANT
+}
+
+enum NotificationType {
+  REWARD_RECEIVED
+  BONUS_GRANTED
+  STREAK_MILESTONE
+  ADMIN_ANNOUNCEMENT
+  SYSTEM
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  GRANT_BONUS
+  SUSPEND_USER
+  BAN_USER
+  UPDATE_CONFIG
+}
+
+// ─────────────────────────────────────────────
+// Users
+// ─────────────────────────────────────────────
+
+model User {
+  id          String     @id @default(cuid())
+  email       String     @unique
+  username    String     @unique
+  password    String
+  phone       String?
+  avatarUrl   String?
+  role        UserRole   @default(USER)
+  status      UserStatus @default(ACTIVE)
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  refreshTokens    RefreshToken[]
+  wallet           Wallet?
+  checkinHistories CheckinHistory[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]       @relation("AuditLogUser")
+  adminActions     AuditLog[]       @relation("AuditLogAdmin")
+  bonusCampaigns   BonusCampaign[]  @relation("CampaignCreator")
+  luckyDrawHistory LuckyDrawHistory[]
+
+  @@index([email])
+  @@index([username])
+  @@index([status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// Auth
+// ─────────────────────────────────────────────
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────
+// Wallet
+// ─────────────────────────────────────────────
+
+model Wallet {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  balance     Decimal  @default(0) @db.Decimal(18, 4)
+  totalEarned Decimal  @default(0) @db.Decimal(18, 4)
+  totalSpent  Decimal  @default(0) @db.Decimal(18, 4)
+  version     Int      @default(0) // optimistic locking
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@index([userId])
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id            String            @id @default(cuid())
+  walletId      String
+  userId        String
+  type          TransactionType
+  amount        Decimal           @db.Decimal(18, 4)
+  balanceBefore Decimal           @db.Decimal(18, 4)
+  balanceAfter  Decimal           @db.Decimal(18, 4)
+  reference     String            @unique // idempotency key
+  description   String?
+  metadata      Json?
+  status        TransactionStatus @default(COMPLETED)
+  createdAt     DateTime          @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([type])
+  @@index([reference])
+  @@index([createdAt])
+  @@map("wallet_transactions")
+}
+
+// ─────────────────────────────────────────────
+// Check-in & Rewards
+// ─────────────────────────────────────────────
+
+model CheckinHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  checkinDate DateTime @db.Date
+  streakDay   Int      @default(1)
+  baseReward  Decimal  @db.Decimal(18, 4)
+  bonusAmount Decimal  @default(0) @db.Decimal(18, 4)
+  totalAmount Decimal  @db.Decimal(18, 4)
+  configId    String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  config CheckinConfig @relation(fields: [configId], references: [id])
+
+  @@unique([userId, checkinDate])
+  @@index([userId])
+  @@index([checkinDate])
+  @@index([streakDay])
+  @@map("checkin_histories")
+}
+
+model CheckinConfig {
+  id               String   @id @default(cuid())
+  name             String
+  isEnabled        Boolean  @default(true)
+  resetOnMissedDay Boolean  @default(true)
+  baseRewardAmount Decimal  @default(10) @db.Decimal(18, 4)
+  maxStreakDay     Int      @default(30) // streak resets after this
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  rewardRules      RewardRule[]
+  checkinHistories CheckinHistory[]
+
+  @@map("checkin_configs")
+}
+
+model RewardRule {
+  id              String   @id @default(cuid())
+  configId        String
+  streakDay       Int // which day this rule applies (1, 7, 14, 30…)
+  rewardAmount    Decimal  @db.Decimal(18, 4)
+  bonusMultiplier Decimal  @default(1) @db.Decimal(5, 2)
+  label           String? // e.g. "Weekly Jackpot"
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  config CheckinConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@unique([configId, streakDay])
+  @@index([configId])
+  @@map("reward_rules")
+}
+
+// ─────────────────────────────────────────────
+// Bonus Campaigns
+// ─────────────────────────────────────────────
+
+model BonusCampaign {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  type          BonusType
+  amount        Decimal   @db.Decimal(18, 4)
+  multiplier    Decimal   @default(1) @db.Decimal(5, 2)
+  maxRecipients Int? // null = unlimited
+  startDate     DateTime
+  endDate       DateTime?
+  isActive      Boolean   @default(false)
+  processedAt   DateTime?
+  createdById   String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  createdBy User @relation("CampaignCreator", fields: [createdById], references: [id])
+
+  @@index([isActive])
+  @@index([startDate])
+  @@index([type])
+  @@map("bonus_campaigns")
+}
+
+// ─────────────────────────────────────────────
+// Notifications
+// ─────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────
+// Audit Logs
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  userId    String? // user who was affected
+  adminId   String? // admin who performed the action
+  action    AuditAction
+  entity    String // table/resource name
+  entityId  String?
+  oldValue  Json?
+  newValue  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime    @default(now())
+
+  user  User? @relation("AuditLogUser", fields: [userId], references: [id], onDelete: SetNull)
+  admin User? @relation("AuditLogAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([adminId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────
+// Lucky Draw
+// ─────────────────────────────────────────────
+
+model LuckyDrawConfig {
+  id             String   @id @default(cuid())
+  name           String   @default("Default Wheel")
+  isEnabled      Boolean  @default(true)
+  costPerSpin    Decimal  @default(0) @db.Decimal(18, 4)
+  maxSpinsPerDay Int      @default(3)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  slots   LuckyDrawSlot[]
+  history LuckyDrawHistory[]
+
+  @@map("lucky_draw_configs")
+}
+
+model LuckyDrawSlot {
+  id           String  @id @default(cuid())
+  configId     String
+  label        String
+  rewardAmount Decimal @db.Decimal(18, 4)
+  weight       Int     @default(1) // probability weight — higher = more likely
+  color        String  @default("#3B82F6")
+  position     Int     @default(0)
+  isActive     Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  config  LuckyDrawConfig    @relation(fields: [configId], references: [id], onDelete: Cascade)
+  history LuckyDrawHistory[]
+
+  @@index([configId])
+  @@map("lucky_draw_slots")
+}
+
+model LuckyDrawHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  configId     String
+  slotId       String
+  rewardAmount Decimal  @db.Decimal(18, 4)
+  createdAt    DateTime @default(now())
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  config LuckyDrawConfig  @relation(fields: [configId], references: [id])
+  slot   LuckyDrawSlot    @relation(fields: [slotId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("lucky_draw_histories")
+}

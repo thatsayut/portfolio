@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"D:\\\\project\\\\portfolio\" /b)",
+      "Bash(node -e \"require\\('sass'\\)\")",
+      "Bash(node_modules/.bin/sass src/styles/globals.scss --no-source-map)",
+      "Bash(npx next *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/login)",
+      "Bash(npx postcss *)",
+      "Bash(node -e ' *)",
+      "Bash(rm -rf .next)",
+      "Bash(npm run *)",
+      "Bash(echo \"Server starting in background \\(PID: $!\\)\")",
+      "Bash(kill 216840)",
+      "Bash(kill 222992)",
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(npx prisma *)",
+      "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"tenthat@gmail.com\",\"password\":\"admin\"}')",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(cat ~/.claude/settings.json 2>/dev/null || echo \"FILE_NOT_FOUND\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('permissions',{}\\).get\\('defaultMode','NOT_SET'\\)\\)\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(npx jest *)"
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+// ─────────────────────────────────────────────
+// Reward Platform — Global Stylesheet
+// ─────────────────────────────────────────────
+// Processing order:
+//   1. SCSS @use modules (must be first per SCSS spec)
+//   2. Tailwind directives (processed by PostCSS after SCSS compile)
+//   3. Tailwind layer overrides
+
+// ── 1. SCSS module imports ───────────────────
+// @use rules MUST be first in SCSS
+@use 'variables' as vars;   // outputs :root CSS custom properties
+@use 'mixins'   as mix;     // mixin definitions — no CSS output
+@use 'base'     as base;    // reset, typography, keyframes
+@use 'components' as comp;  // BEM component classes
+
+// ── 2. Tailwind directives ───────────────────
+// PostCSS replaces these with actual utility CSS after SCSS compiles
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// ── 3. Tailwind layer overrides ──────────────
+// These run in the Tailwind pipeline so @apply works here
+
+@layer base {
+  // Ensure all borders use the CSS-variable colour
+  * {
+    @apply border-border;
+  }
+
+  // Apply theme tokens to <body>
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  // Accessible focus rings everywhere
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  // Reusable form primitives that complement the SCSS BEM classes
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-input bg-background
+           text-foreground text-sm placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-ring transition;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-foreground mb-1.5;
+  }
+
+  .error-msg {
+    @apply text-destructive text-xs mt-1;
+  }
+}

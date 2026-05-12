@@ -1,0 +1,201 @@
+@use 'variables' as *;
+
+// ─────────────────────────────────────────────
+// Responsive breakpoints
+// ─────────────────────────────────────────────
+
+@mixin sm { @media (min-width: #{$bp-sm}) { @content; } }
+@mixin md { @media (min-width: #{$bp-md}) { @content; } }
+@mixin lg { @media (min-width: #{$bp-lg}) { @content; } }
+@mixin xl { @media (min-width: #{$bp-xl}) { @content; } }
+@mixin xxl { @media (min-width: #{$bp-2xl}) { @content; } }
+
+// ─────────────────────────────────────────────
+// Flexbox helpers
+// ─────────────────────────────────────────────
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+// ─────────────────────────────────────────────
+// Typography
+// ─────────────────────────────────────────────
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin text-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ─────────────────────────────────────────────
+// UI Patterns
+// ─────────────────────────────────────────────
+
+@mixin card {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
+}
+
+@mixin card-hover {
+  @include card;
+  transition: box-shadow $transition-base, transform $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-1px);
+  }
+}
+
+@mixin input-base {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid hsl(var(--input));
+  border-radius: $radius-md;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: $text-sm;
+  transition: box-shadow $transition-fast, border-color $transition-fast;
+  outline: none;
+
+  &::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  &:focus {
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+  }
+}
+
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-md;
+  font-size: $text-sm;
+  font-weight: $font-semibold;
+  cursor: pointer;
+  border: none;
+  transition: background-color $transition-fast, opacity $transition-fast, transform $transition-fast;
+  outline: none;
+
+  &:active { transform: scale(0.97); }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+
+  &:hover:not(:disabled) {
+    background-color: hsl(var(--primary) / 0.9);
+  }
+}
+
+@mixin btn-outline {
+  @include btn-base;
+  background-color: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+
+  &:hover:not(:disabled) {
+    background-color: hsl(var(--muted));
+  }
+}
+
+@mixin btn-ghost {
+  @include btn-base;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+
+  &:hover:not(:disabled) {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+}
+
+// ─────────────────────────────────────────────
+// Animations
+// ─────────────────────────────────────────────
+
+@mixin fade-in($duration: 200ms) {
+  animation: fadeIn $duration ease forwards;
+}
+
+@mixin slide-up($duration: 250ms) {
+  animation: slideUp $duration ease forwards;
+}
+
+@mixin skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: $radius-md;
+}
+
+// ─────────────────────────────────────────────
+// Scrollbar
+// ─────────────────────────────────────────────
+
+@mixin scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: $radius-full;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Status badge
+// ─────────────────────────────────────────────
+
+@mixin badge($bg, $color) {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-full;
+  font-size: $text-xs;
+  font-weight: $font-medium;
+  background-color: $bg;
+  color: $color;
+}

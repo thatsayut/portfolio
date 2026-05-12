@@ -1,0 +1,50 @@
+version: '3.9'
+
+# Development override — hot reload, exposed ports, no Nginx
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rp-postgres-dev
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: rpuser
+      POSTGRES_PASSWORD: rppassword
+      POSTGRES_DB: reward_platform_dev
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rpuser']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rp-dev-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: rp-redis-dev
+    ports:
+      - '6379:6379'
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    networks:
+      - rp-dev-net
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: rp-redis-ui
+    ports:
+      - '8081:8081'
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - rp-dev-net
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  rp-dev-net:
+    driver: bridge
