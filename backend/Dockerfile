@@ -6,9 +6,8 @@ RUN apk add --no-cache openssl
 # ---- Dependencies ----
 FROM base AS deps
 COPY package*.json ./
-RUN npm ci --only=production && \
-    cp -R node_modules /tmp/prod_node_modules && \
-    npm ci
+# Install ALL deps (including devDependencies) for building
+RUN npm ci
 
 # ---- Build ----
 FROM base AS build
@@ -17,14 +16,20 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
+# ---- Production Dependencies ----
+FROM base AS prod-deps
+COPY package*.json ./
+RUN npm ci --omit=dev
+
 # ---- Production ----
 FROM base AS production
 ENV NODE_ENV=production
 
-COPY --from=deps /tmp/prod_node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/prisma ./prisma
+COPY package*.json ./
 
 EXPOSE 4000
 
