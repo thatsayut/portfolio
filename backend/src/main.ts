@@ -22,9 +22,20 @@ async function bootstrap() {
   app.use(helmet());
   app.use(compression());
 
-  // CORS
+  // CORS — support Vercel preview URLs + production
+  const clientUrl = config.get<string>('app.clientUrl', 'http://localhost:3000');
   app.enableCors({
-    origin: config.get<string>('app.clientUrl', 'http://localhost:3000'),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, health checks)
+      if (!origin) return callback(null, true);
+      // Allow exact match
+      if (origin === clientUrl) return callback(null, true);
+      // Allow Vercel preview deployments (*.vercel.app)
+      if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+      // Allow localhost in development
+      if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+      callback(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });

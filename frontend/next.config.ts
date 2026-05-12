@@ -1,8 +1,14 @@
 import type { NextConfig } from 'next';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
   // Silence the "multiple lockfiles" workspace-root warning
   outputFileTracingRoot: require('path').join(__dirname, '../'),
+
+  // Vercel needs standalone output for optimal deployment
+  output: isProd ? 'standalone' : undefined,
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.githubusercontent.com' },
@@ -10,7 +16,10 @@ const nextConfig: NextConfig = {
       { protocol: 'http', hostname: 'localhost' },
     ],
   },
+
+  // Only proxy API in development — in production, frontend calls the API directly
   async rewrites() {
+    if (isProd) return [];
     return [
       {
         source: '/api/:path*',

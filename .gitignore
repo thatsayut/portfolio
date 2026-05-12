@@ -9,6 +9,9 @@ build/
 .next/
 out/
 
+.claude
+CLAUDE.md
+
 # Environment files
 .env
 .env.local

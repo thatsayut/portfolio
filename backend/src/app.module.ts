@@ -54,13 +54,15 @@ import { LuckyDrawModule } from './modules/lucky-draw/lucky-draw.module';
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         const redisUrl = new URL(config.get<string>('app.redisUrl') ?? 'redis://localhost:6379');
+        const useTls = redisUrl.protocol === 'rediss:';
         return {
           store: await redisStore({
             host: redisUrl.hostname,
-            port: parseInt(redisUrl.port || '6379', 10),
+            port: parseInt(redisUrl.port || (useTls ? '6380' : '6379'), 10),
             password: redisUrl.password || undefined,
             db: redisUrl.pathname ? parseInt(redisUrl.pathname.slice(1) || '0', 10) : 0,
             ttl: config.get<number>('app.cacheTtl', 300),
+            ...(useTls ? { tls: { rejectUnauthorized: false } } : {}),
           }),
         };
       },
@@ -71,12 +73,15 @@ import { LuckyDrawModule } from './modules/lucky-draw/lucky-draw.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const redisUrl = new URL(config.get<string>('app.redisUrl') ?? 'redis://localhost:6379');
+        const useTls = redisUrl.protocol === 'rediss:';
         return {
           connection: {
             host: redisUrl.hostname,
-            port: parseInt(redisUrl.port || '6379', 10),
+            port: parseInt(redisUrl.port || (useTls ? '6380' : '6379'), 10),
             password: redisUrl.password || undefined,
             db: redisUrl.pathname ? parseInt(redisUrl.pathname.slice(1) || '0', 10) : 0,
+            ...(useTls ? { tls: { rejectUnauthorized: false } } : {}),
+            maxRetriesPerRequest: null,
           },
           defaultJobOptions: {
             removeOnComplete: 100,

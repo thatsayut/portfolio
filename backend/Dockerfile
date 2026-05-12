@@ -24,11 +24,12 @@ ENV NODE_ENV=production
 COPY --from=deps /tmp/prod_node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY prisma ./prisma
+COPY --from=build /app/prisma ./prisma
 
 EXPOSE 4000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/v1/health || exit 1
 
-CMD ["node", "dist/main"]
+# Run migrations then start the server
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
